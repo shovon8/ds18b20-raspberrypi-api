@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Temperature Monitor</title>
+<style type="text/css">
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+body, * {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: black;
+}
+
+.progress-container {
+  display: fixed;
+  width: 100%;
+  height: 15px;
+  top: 0;
+  left: 0;
+  background: black;
+}
+
+#progress {
+  display: block;
+  box-sizing: content-box;
+  width: 0%;
+  height: 100%;
+  background: rgb(0,101,181);
+  background: linear-gradient(90deg, rgba(0,101,181,1) 0%, rgba(59,255,226,1) 100%);
+}
+
+.content-container {
+  display: block;
+  background: black;
+  text-align: center;
+}
+
+.content-container h1 {
+  color: white;
+  font-size: 10em;
+}
+
+.content-container span {
+  display: block;
+  color: #02dd2e;
+  padding-bottom: 2em;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-container">
+  <div id="progress"></div>
+</div>
+
+<div class="content-container">
+<h1 id="tempContainer">00.00°C</h1>
+<span>Temperature updates in every 5 seconds</span>
+</div>
+
+<script type="text/javascript">
+window.addEventListener('load', main);
+
+function main() {
+  function getTemperature() {
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+       updateTemperature(JSON.parse(this.responseText));
+      }
+    };
+    http.open("GET", "/temperature", true);
+    http.send();
+  }
+  
+  function updateTemperature(data) {
+    var element = document.getElementById("tempContainer");
+    element.innerText = parseFloat(data.temperature).toFixed(2) + "°C"
+    console.log(data.temperature);
+  }
+  
+  function updateProgress(percentage) {
+    var element = document.getElementById('progress');
+    element.style.width = percentage + "%";
+  }
+  
+  function app() {
+    var percentage = 0;
+    var id = window.setInterval(function() {
+      updateProgress(percentage);
+      if(percentage == 100) {
+        getTemperature();
+        percentage = 0;
+        window.clearInterval(id);
+      }
+      percentage+=1;
+    }, 50);
+  }
+  
+  function start() {
+    getTemperature();
+    window.setInterval(app, 5000);
+  }
+  
+  
+  start();
+}
+</script>
+</body>
+</html>
